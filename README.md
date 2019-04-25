@@ -37,11 +37,9 @@ The following schema has been selected for the staging tables;
 **Events Table**
 
 * artist varchar
-* auth varchar
 * firstName varchar 
 * gender varchar 
 * lastName varchar 
-* level 
 * length double precision
 * location varchar 
 * page varchar 
@@ -49,7 +47,7 @@ The following schema has been selected for the staging tables;
 * userAgent varchar
 * user_id varchar
 
-method, registration, status, and itemInSession were not added, since they are not required for the analytics tables.
+auth, method, registration, status, and itemInSession were not added, since they are not required for the analytics tables.
 
 **Songs Table**
 
