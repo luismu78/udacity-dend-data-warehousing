@@ -32,6 +32,37 @@ We can declare primary key and foreign key relationships between dimensions and 
 
 ### Schema Selection
 
+The following schema has been selected for the staging tables;
+
+**Events Table**
+
+* artist varchar
+* auth varchar
+* firstName varchar 
+* gender varchar 
+* lastName varchar 
+* level 
+* length double precision
+* location varchar 
+* page varchar 
+* ts integer
+* userAgent varchar
+* user_id varchar
+
+method, registration, status, and itemInSession were not added, since they are not required for the analytics tables.
+
+**Songs Table**
+
+* artist_id varchar
+* artist_latitude double precision
+* artist_location varchar 
+* artist_longitude double precision
+* artist_name varchar 
+* duration double precision
+* song_id varchar 
+* title varchar 
+* year integer
+
 With the above considerations, the following schema was selected for the fact, and dimension analytics tables;
 
 #### Fact Table
@@ -96,5 +127,6 @@ We have chosen an all distribution for this table, since we consider the artists
 * year integer 
 * weekday integer
 
+We have chosen an 'auto' distribution for the time, since we are not going to be performing many joins on this table, hence we can let redshift distribute the data in an automated way without losing query performance. 
 
 
