@@ -127,4 +127,25 @@ We have chosen an all distribution for this table, since we consider the artists
 
 We have chosen an 'auto' distribution for the time, since we are not going to be performing many joins on this table, hence we can let redshift distribute the data in an automated way without losing query performance. 
 
+### Project Requirements
 
+The requirements for the project are a valid aws account, with accompanying security credentials, as well as a python environment, which satisfies the module requirements given in requirements.txt
+
+You will need to add aws access key and secret information to the dwf.cfg file, under AWS ACCESS. This is not to be comitted to git.
+
+### Redshift
+
+In order to spin up a redshift cluster, we need the following;
+
+* To create an IAM role and policy for the redshift cluster to inherit
+* To create a security group for redshift, such that the redshift port can be accessed
+* To create the redshift cluster given a particular configuration.
+
+To spin down the redshift cluster, we wish to remove the above mentioned.
+
+To follow IAC (Infrastructure as Code) practices, and to allow us to easily spin up and spin down the redshift cluster to save costs, we can use the following scripts;
+
+* start_redshift.py
+* stop_redshift.py
+
+The scripts will create/remove the neccessary resources for redshift to run.
