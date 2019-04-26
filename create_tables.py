@@ -31,7 +31,7 @@ def main():
         DB_PASSWORD, 
         DB_PORT,
     )
-    print('Connecting to RedShift on', CONNECTION_STRING)
+    print('Connecting to RedShift')
     conn = psycopg2.connect(CONNECTION_STRING)
     print('Connected to Redshift')
     cur = conn.cursor()
