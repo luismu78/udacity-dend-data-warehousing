@@ -3,27 +3,16 @@
 Start Redshift will do the following;
 
 - Create an IAM role / policy which is able to read from S3
-- Create a Security Group whereby the redshift cluster can be accessed on the given port
 - Create a redshift cluster based on the provided configuration
 
 """
 
 import json
-import configparser
+import time 
 import boto3
 import botocore
 
-
-def get_config():
-    """
-    Loads in the config object from the dwh.cfg file
-
-    Returns
-    config: config object from dwh.cfg file
-    """
-    config = configparser.ConfigParser()
-    config.read('dwh.cfg')
-    return config
+from helpers import get_config, check_redshift_cluster_status
 
 
 def create_iam(config):
@@ -70,7 +59,7 @@ def create_iam(config):
     try:
         IAM.attach_role_policy(
             RoleName=iam_role_name,
-            PolicyArn="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+            PolicyArn=config.get('IAM', 'POLICY_ARN')
         )
     except Exception as e:
         raise e
@@ -97,19 +86,37 @@ def create_redshift_cluster(config, iam_role):
     )
 
     print('Creating Redshift Cluster...')
-    response = redshift.create_cluster(
-        DBName=config.get('CLUSTER', 'DB_NAME'),
-        ClusterIdentifier=config.get('CLUSTER', 'CLUSTER_IDENTIFIER'),
-        MasterUsername=config.get('CLUSTER', 'DB_USER'),
-        MasterUserPassword=config.get('CLUSTER', 'DB_PASSWORD'),
-        NodeType=config.get('CLUSTER', 'NODE_TYPE'),
-        Port=int(config.get('CLUSTER', 'DB_PORT')),
-        IamRoles=[
-            iam_role['Role']['Arn']
-        ],
-        NumberOfNodes=int(config.get('CLUSTER', 'NODE_COUNT'))
-    )
-    print('Redshift Cluster Response.', response)
+    try:
+        response = redshift.create_cluster(
+            DBName=config.get('CLUSTER', 'DB_NAME'),
+            ClusterIdentifier=config.get('CLUSTER', 'CLUSTER_IDENTIFIER'),
+            MasterUsername=config.get('CLUSTER', 'DB_USER'),
+            MasterUserPassword=config.get('CLUSTER', 'DB_PASSWORD'),
+            NodeType=config.get('CLUSTER', 'NODE_TYPE'),
+            Port=int(config.get('CLUSTER', 'DB_PORT')),
+            IamRoles=[
+                iam_role['Role']['Arn']
+            ],
+            NumberOfNodes=int(config.get('CLUSTER', 'NODE_COUNT'))
+        )
+        print('Create Cluster Call Made.')
+    except Exception as e:
+        print('Could not create cluster', e)
+        
+    cluster_initiated = time.time()
+    status_checked = 0
+    while True:
+        print('Getting Cluster Status..')
+        cluster_status = check_redshift_cluster_status(config, redshift)
+        status_checked += 1
+        if cluster_status['ClusterStatus'] == 'available':
+            break
+        print('Cluster Status', cluster_status)
+        print('Status Checked', status_checked)
+        print('Time Since Initiated', time.time() - cluster_initiated)
+        time.sleep(5)
+    print('Cluster is created and available.')    
+
 
 def main():
     """
