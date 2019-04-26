@@ -74,10 +74,15 @@ def delete_redshift_cluster(config):
     except Exception as e:
         print('could not delete redshift cluster', e)
 
+    cluster_delete_actioned = time.time()
     while True:
         cluster_status = check_redshift_cluster_status(config, redshift)
+        if cluster_status is None:
+            print('Cluster is deleted.')
+            break
         print('Cluster is', cluster_status['ClusterStatus'])
         time.sleep(5)
+        print('Time since delete actioned', time.time() - cluster_delete_actioned)
 
 def main():
     """main 

@@ -59,7 +59,7 @@ def create_iam(config):
     try:
         IAM.attach_role_policy(
             RoleName=iam_role_name,
-            PolicyArn=config.get('IAM', 'POLICY_ARN')
+            PolicyArn=config.get('IAM_ROLE', 'ARN')
         )
     except Exception as e:
         raise e

@@ -34,4 +34,5 @@ def check_redshift_cluster_status(config, redshift):
         )
     except Exception as e:
         print('could not get cluster status', e)
+        return None
     return cluster_status['Clusters'][0]
