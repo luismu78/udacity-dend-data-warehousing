@@ -175,6 +175,16 @@ songplay_table_insert = ("""
 """)
 
 user_table_insert = ("""
+INSERT INTO users (
+    user_id,
+    first_name,
+    last_name, 
+    gender,
+    level
+) 
+SELECT user_id, firstName, lastName, gender, level
+FROM staging_events
+GROUP BY user_id, firstName, lastName, gender, level
 """)
 
 song_table_insert = ("""
@@ -184,14 +194,26 @@ INSERT INTO songs (
     artist_id,
     year,
     duration
-) SELECT song_id, title, artist_id, year, duration 
+) 
+SELECT song_id, title, artist_id, year, duration 
 FROM staging_songs
 """)
 
 artist_table_insert = ("""
+INSERT INTO artists (
+    artist_id, 
+    name, 
+    location, 
+    latitude, 
+    longitude
+)
+SELECT artist_id, artist_name, artist_location, artist_latitude, artist_longitude
+FROM staging_songs
+GROUP BY artist_id, artist_name, artist_location, artist_latitude, artist_longitude
 """)
 
 time_table_insert = ("""
+
 """)
 
 # QUERY LISTS

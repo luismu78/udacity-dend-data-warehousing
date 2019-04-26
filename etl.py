@@ -5,8 +5,10 @@ from helpers import connect_database
 
 def load_staging_tables(cur, conn):
     for query in copy_table_queries:
+        print('executing query', query)
         cur.execute(query)
         conn.commit()
+        print('executed query.')
 
 
 def insert_tables(cur, conn):
