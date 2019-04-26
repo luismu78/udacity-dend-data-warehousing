@@ -77,14 +77,13 @@ def create_iam(config):
     print('Successfully Created Role, and Attached S3 Read-Only Policy.')
     return role
 
-def create_redshift_cluster(config, security_group, iam_role):
+def create_redshift_cluster(config, iam_role):
     """create redshift cluster
     initiates the creation of a redshift cluster created based on the 
     cluster parameters given in the config file 
     and waits till the cluster is up and running.
     Parameters:
     config: config object
-    security_group: security group created for redshift to allow external access
     iam_role: iam role created for the redshift cluster
     Returns:
     redshift_cluster: metadata regarding the redshift cluster
@@ -103,9 +102,6 @@ def create_redshift_cluster(config, security_group, iam_role):
         ClusterIdentifier=config.get('CLUSTER', 'CLUSTER_IDENTIFIER'),
         MasterUsername=config.get('CLUSTER', 'DB_USER'),
         MasterUserPassword=config.get('CLUSTER', 'DB_PASSWORD'),
-        # ClusterSecurityGroups=[
-        #     security_group['GroupName']
-        # ],
         NodeType=config.get('CLUSTER', 'NODE_TYPE'),
         Port=int(config.get('CLUSTER', 'DB_PORT')),
         IamRoles=[
@@ -125,7 +121,7 @@ def main():
 
     config = get_config()
     iam_role = create_iam(config)
-    create_redshift_cluster(config, security_group, iam_role)
+    create_redshift_cluster(config, iam_role)
 
 
 if __name__ == '__main__':
