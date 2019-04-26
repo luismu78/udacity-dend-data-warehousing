@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS staging_songs(
 
 songplay_table_create = ("""
 CREATE TABLE IF NOT EXISTS songplays (
-    songplay_id integer NOT NULL,
+    songplay_id integer NOT NULL IDENTITY(0,1),
     start_time bigint,
     user_id varchar,
     level varchar,
@@ -178,6 +178,14 @@ user_table_insert = ("""
 """)
 
 song_table_insert = ("""
+INSERT INTO songs (
+    song_id,
+    title,
+    artist_id,
+    year,
+    duration
+) SELECT song_id, title, artist_id, year, duration 
+FROM staging_songs
 """)
 
 artist_table_insert = ("""
