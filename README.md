@@ -37,17 +37,23 @@ The following schema has been selected for the staging tables;
 **Events Table**
 
 * artist varchar
+* auth varchar
 * firstName varchar 
 * gender varchar 
+* itemInSession integer
 * lastName varchar 
 * length double precision
+* level varchar
 * location varchar 
+* method varchar
 * page varchar 
-* ts integer
+* registration double precision
+* sessionId integer
+* song varchar
+* status integer
+* ts bigint
 * userAgent varchar
 * user_id varchar
-
-auth, method, registration, status, and itemInSession were not added, since they are not required for the analytics tables.
 
 **Songs Table**
 
@@ -57,6 +63,7 @@ auth, method, registration, status, and itemInSession were not added, since they
 * artist_longitude double precision
 * artist_name varchar 
 * duration double precision
+* num_songs integer
 * song_id varchar 
 * title varchar 
 * year integer
@@ -69,7 +76,7 @@ With the above considerations, the following schema was selected for the fact, a
 
 * songplay_id integer NOT NULL PRIMARY KEY
 * start_time integer SORT KEY
-* user_id varchar DISTKEY FOREIGN KEY REFERENCES users(user_id)
+* user_id varchar FOREIGN KEY REFERENCES users(user_id)
 * level varchar
 * song_id varchar DISTKEY FOREIGN KEY REFERENCES songs(song_id)
 * artist_id varchar FOREIGN KEY REFERENCES artists(artist_id)
@@ -77,7 +84,7 @@ With the above considerations, the following schema was selected for the fact, a
 * location varchar 
 * user_agent varchar
 
-Key distribution has been chosen for the songplays table, with a distribution key of song_id and user_id. This is because joins will be primarily made between the songplays, and the song and user metadata itself. As well as this, the song and user tables is most likely to grow in size. This selection will also allow the data to be distributed evenly over the nodes, avoiding skew. The user id is chosen as a varchar, since this is how the data is represented in the log data.
+Key distribution has been chosen for the songplays table, with a distribution key of song_id. This is because joins will be primarily made between the songplays, and the song  metadata itself. As well as this, the song table is most likely to grow in size. This selection will also allow the data to be distributed evenly over the nodes, avoiding skew. The user id is chosen as a varchar, since this is how the data is represented in the log data.
 
 We have created foreign keys with the user_id, song_id, and artist_id, as this information will be used for joins. 
 
@@ -85,15 +92,15 @@ We have used the start_time and the session_id as sort keys, since we may need t
 
 #### Dimension Tables
 
-**users** - key distribution
+**users** - all distribution
 
-* user_id varchar NOT NULL PRIMARY KEY DISTKEY
+* user_id varchar NOT NULL PRIMARY KEY
 * first_name varchar
 * last_name varchar
 * gender varchar
 * level varchar
 
-We have chosen the user_id as the distkey, such as to match the fact table. This will help query performance with regards to performing joins on the user_id. 
+We have chosen an all distribution for this table, since we will have to make joins with the users from the songplays table. We consider that the users will have slowly changing dimensions with regards to the songs, and will not grow too large with regards to redshift standards.
 
 **songs** - key distribution
 
@@ -138,7 +145,6 @@ You will need to add aws access key and secret information to the dwf.cfg file, 
 In order to spin up a redshift cluster, we need the following;
 
 * To create an IAM role and policy for the redshift cluster to inherit
-* To create a security group for redshift, such that the redshift port can be accessed
 * To create the redshift cluster given a particular configuration.
 
 To spin down the redshift cluster, we wish to remove the above mentioned.

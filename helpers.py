@@ -5,6 +5,7 @@ Helper functions for the data warehousing project.
 """
 
 import configparser
+import psycopg2
 
 def get_config():
     """
@@ -16,6 +17,35 @@ def get_config():
     config = configparser.ConfigParser()
     config.read('dwh.cfg')
     return config
+
+
+def connect_database():
+    """connect database
+
+    connect database connects to the redshift database
+    Returns:
+    conn: database connection.
+
+    """
+    config = configparser.ConfigParser()
+    config.read('dwh.cfg')
+
+    HOST = config.get('CLUSTER', 'HOST')
+    DB_NAME = config.get('CLUSTER', 'DB_NAME')
+    DB_USER = config.get('CLUSTER', 'DB_USER')
+    DB_PASSWORD = config.get('CLUSTER', 'DB_PASSWORD')
+    DB_PORT = config.get('CLUSTER', 'DB_PORT')
+    CONNECTION_STRING = "host={} dbname={} user={} password={} port={}".format(
+        HOST,
+        DB_NAME, 
+        DB_USER, 
+        DB_PASSWORD, 
+        DB_PORT,
+    )
+    print('Connecting to RedShift', CONNECTION_STRING)
+    conn = psycopg2.connect(CONNECTION_STRING)
+    print('Connected to Redshift')
+    return conn
 
 
 def check_redshift_cluster_status(config, redshift):

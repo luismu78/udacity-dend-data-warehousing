@@ -23,11 +23,18 @@ CREATE TABLE IF NOT EXISTS staging_events(
     auth varchar,
     firstName varchar,
     gender varchar,
+    itemInSession integer,
     lastName varchar,
     length double precision,
+    level varchar,
     location varchar,
+    method varchar,
     page varchar,
-    ts integer,
+    registration double precision,
+    sessionId integer,
+    song varchar,
+    status integer,
+    ts bigint,
     userAgent varchar,
     user_id varchar
 )
@@ -41,6 +48,7 @@ CREATE TABLE IF NOT EXISTS staging_songs(
     artist_longitude double precision,
     artist_name varchar,
     duration double precision,
+    num_songs integer,
     song_id varchar,
     title varchar,
     year integer
@@ -50,7 +58,7 @@ CREATE TABLE IF NOT EXISTS staging_songs(
 songplay_table_create = ("""
 CREATE TABLE IF NOT EXISTS songplays (
     songplay_id integer NOT NULL,
-    start_time integer,
+    start_time bigint,
     user_id varchar,
     level varchar,
     song_id varchar,
@@ -120,18 +128,46 @@ CREATE TABLE IF NOT EXISTS time(
 # STAGING TABLES
 
 staging_events_copy = ("""
-COPY staging_events
-(artist, auth, firstName, gender, lastName, length, location, page, ts, userAgent, user_id)
+DELETE FROM staging_events;
+COPY staging_events (
+    artist, 
+    auth, 
+    firstName, 
+    gender,
+    itemInSession,
+    lastName,
+    length,
+    level,
+    location,
+    method,
+    page, 
+    registration,
+    sessionId,
+    song,
+    status,
+    ts, 
+    userAgent, 
+    user_id
+)
 FROM {}
 FORMAT JSON AS {} 
-""").format(config.get('S3', 'LOG_DATA'), config.get('S3', 'LOG_JSONPATH'))
+iam_role '{}'
+""").format(
+    config.get('S3', 'LOG_DATA'), config.get('S3', 'LOG_JSONPATH'),
+    config.get('IAM_ROLE', 'REDSHIFT_ARN')
+)
 
 staging_songs_copy = ("""
+DELETE FROM staging_songs;
 COPY staging_songs
 (artist_id, artist_latitude, artist_location, artist_longitude, artist_name, duration, song_id, title, year)
 FROM {}
-FORMAT JSON AS auto
-""").format(config.get('S3', 'SONG_DATA'))
+FORMAT JSON AS 'auto'
+iam_role '{}'
+""").format(
+    config.get('S3', 'SONG_DATA'), 
+    config.get('IAM_ROLE', 'REDSHIFT_ARN')
+)
 
 # FINAL TABLES
 
