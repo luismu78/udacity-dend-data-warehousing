@@ -172,6 +172,36 @@ iam_role '{}'
 # FINAL TABLES
 
 songplay_table_insert = ("""
+insert into songplays(
+    start_time,
+    user_id,
+    level,
+    song_id,
+    artist_id,
+    session_id,
+    location,
+    user_agent
+)
+select ts as start_time, 
+       user_id, 
+       level, 
+       songs.song_id as song_id, 
+       artists.artist_id as artist_id,
+       sessionId as session_id, 
+       staging_events.location as location, 
+       userAgent as user_agent
+from staging_events 
+inner join artists on artists.name = staging_events.artist
+inner join songs on songs.title = staging_events.song 
+where page='NextSong'
+group by ts,
+         user_id,
+         level,
+         songs.song_id,
+         artists.artist_id,
+         sessionId,
+         staging_events.location,
+         userAgent
 """)
 
 user_table_insert = ("""
@@ -221,4 +251,9 @@ time_table_insert = ("""
 create_table_queries = [staging_events_table_create, staging_songs_table_create, user_table_create, artist_table_create, song_table_create, songplay_table_create, time_table_create]
 drop_table_queries = [staging_events_table_drop, staging_songs_table_drop, songplay_table_drop, user_table_drop, song_table_drop, artist_table_drop, time_table_drop]
 copy_table_queries = [staging_events_copy, staging_songs_copy]
-insert_table_queries = [songplay_table_insert, user_table_insert, song_table_insert, artist_table_insert, time_table_insert]
+insert_table_queries=[
+    song_table_insert,
+    artist_table_insert,
+    user_table_insert,
+    songplay_table_insert
+]

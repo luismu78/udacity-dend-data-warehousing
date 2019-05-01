@@ -13,16 +13,18 @@ def load_staging_tables(cur, conn):
 
 def insert_tables(cur, conn):
     for query in insert_table_queries:
+        print('executing query', query)
         cur.execute(query)
         conn.commit()
+        print('finished executing query.')
 
 
 def main():
     conn = connect_database()
     cur = conn.cursor()
     
-    load_staging_tables(cur, conn)
-    # insert_tables(cur, conn)
+    # load_staging_tables(cur, conn)
+    insert_tables(cur, conn)
 
     conn.close()
 
