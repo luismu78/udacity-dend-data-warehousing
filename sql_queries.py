@@ -194,14 +194,6 @@ from staging_events
 inner join artists on artists.name = staging_events.artist
 inner join songs on songs.title = staging_events.song 
 where page='NextSong'
-group by ts,
-         user_id,
-         level,
-         songs.song_id,
-         artists.artist_id,
-         sessionId,
-         staging_events.location,
-         userAgent
 """)
 
 user_table_insert = ("""
