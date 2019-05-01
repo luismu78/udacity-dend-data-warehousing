@@ -115,7 +115,7 @@ diststyle all;
 
 time_table_create = ("""
 CREATE TABLE IF NOT EXISTS time(
-    start_time integer NOT NULL,
+    start_time bigint NOT NULL,
     hour integer,
     day integer,
     week integer,
@@ -227,6 +227,7 @@ INSERT INTO songs (
 ) 
 SELECT song_id, title, artist_id, year, duration 
 FROM staging_songs
+GROUP BY song_id, title, artist_id, year, duration
 """)
 
 artist_table_insert = ("""
@@ -243,7 +244,22 @@ GROUP BY artist_id, artist_name, artist_location, artist_latitude, artist_longit
 """)
 
 time_table_insert = ("""
-
+insert into time (
+    start_time,
+    hour,
+    day,
+    week,
+    year,
+    weekday
+)
+select start_time,
+	   extract(hour from timestamp 'epoch' + start_time * interval '0.001 seconds') as hour,
+       extract(day from timestamp 'epoch' + start_time * interval '0.001 seconds') as day,
+       extract(week from timestamp 'epoch' + start_time * interval '0.001 seconds') as week,
+       extract(year from timestamp 'epoch' + start_time * interval '0.001 seconds') as year,
+       extract(weekday from timestamp 'epoch' + start_time * interval '0.001 seconds') as weekday
+from songplays 
+group by songplay_id, start_time
 """)
 
 # QUERY LISTS
@@ -255,5 +271,6 @@ insert_table_queries=[
     song_table_insert,
     artist_table_insert,
     user_table_insert,
-    songplay_table_insert
+    songplay_table_insert,
+    time_table_insert
 ]
