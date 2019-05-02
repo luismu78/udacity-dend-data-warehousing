@@ -98,33 +98,33 @@ We have used the start_time and the session_id as sort keys, since we may need t
 * first_name varchar
 * last_name varchar
 * gender varchar
-* level varchar
+* level varchar NOT NULL
 
-We have chosen an all distribution for this table, since we will have to make joins with the users from the songplays table. We consider that the users will have slowly changing dimensions with regards to the songs, and will not grow too large with regards to redshift standards.
+We have chosen an all distribution for this table, since we will have to make joins with the users from the songplays table. We consider that the users will have slowly changing dimensions with regards to the songs, and will not grow too large with regards to redshift standards. The level of the user should not be nullable, and hence we added a not null constraint.
 
 **songs** - key distribution
 
 * song_id varchar NOT NULL PRIMARY KEY DISTKEY
 * title varchar 
-* artist_id varchar FOREIGN KEY REFERENCES artists(artist_id)
+* artist_id varchar FOREIGN KEY REFERENCES artists(artist_id) NOT NULL
 * year integer SORT KEY
 * duration double precision
 
-We have chosen song_id as the distribution key, such as to match the fact table, for query performance. The year is given as a sort key, since filtering may be given on this column. We have added the artist_id as a foreign key reference such as to be able to perform joins with the artist table.
+We have chosen song_id as the distribution key, such as to match the fact table, for query performance. The year is given as a sort key, since filtering may be given on this column. We have added the artist_id as a foreign key reference such as to be able to perform joins with the artist table. The artist id should always exist, and hence we added a NOT NULL constraint on this column.
 
 **artists** - all distribution
 
 * artist_id varchar NOT NULL PRIMARY KEY
-* name varchar
+* name varchar NOT NULL
 * location varchar
 * latitude double precision
 * longitude double precision 
 
-We have chosen an all distribution for this table, since we consider the artists to have slowly changing dimensions, and to not grow too large by redshift standards.
+We have chosen an all distribution for this table, since we consider the artists to have slowly changing dimensions, and to not grow too large by redshift standards. The artist should always have an accompanying name, and hence we added a not null constraint to this.
 
 **time** - auto distribution
 
-* start_time integer NOT NULL
+* start_time integer NOT NULL PRIMARY KEY
 * hour integer 
 * day integer
 * week integer
@@ -132,7 +132,7 @@ We have chosen an all distribution for this table, since we consider the artists
 * year integer 
 * weekday integer
 
-We have chosen an 'auto' distribution for the time, since we are not going to be performing many joins on this table, hence we can let redshift distribute the data in an automated way without losing query performance. 
+We have chosen an 'auto' distribution for the time, since we are not going to be performing many joins on this table, hence we can let redshift distribute the data in an automated way without losing query performance. The start time is given as the primary key for the table.
 
 ### Project Requirements
 
@@ -165,7 +165,7 @@ The ETL pipeline comprises of two steps;
 
 In the first step, we wish to copy the data from two directories of JSON formatted documents, staging_events, and staging_songs. For the staging songs, we are provided with the format of the data in 's3://udacity-dend/log_json_path.json' and hence we COPY the staging events using this document as the format. With regards to staging songs, no format is provided, and hence we use the 'auto' format for copying across the data.
 
-With regards to creating the analytics tables, we firstly create the songs table from the staging_songs table, using group by statements to avoid duplicates in the songs. We do the same for artists, and users respectively, once again using group by statements to avoid duplication. To create the songplays analytics tables, select from the staging_events table, joining artists and songs tables to retrieve the song_ids and artists_ids. We filter the insert statement by the entries for which page is equal to 'NextSong'. We create the time table from the songplays. we use the 'extract' function, to extract the particular part of the datetime object, and the 'timestamp' function to convert the epoch timestamp to a datetime object. We group by songplay_id and start_time to avoid duplications.
+With regards to creating the analytics tables, we firstly create the songs table from the staging_songs table, using 'SELECT DISTINCT' statements to avoid duplicates in the songs. We do the same for artists, and users respectively, once again using a 'SELECT DISTINCT' statement to avoid duplication. To create the songplays analytics tables, select from the staging_events table, joining artists and songs tables to retrieve the song_ids and artists_ids. We filter the insert statement by the entries for which page is equal to 'NextSong'. We create the time table from the songplays. we use the 'extract' function, to extract the particular part of the datetime object, and the 'timestamp' function to convert the epoch timestamp to a datetime object. 
 
 The ETL pipeline is such that the script will load all events from the json files into staging tables, and subsequently into analytics tables, such that the sparkify analytics team can produce valuable insights into user listening behaviour.
 

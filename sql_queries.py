@@ -67,9 +67,6 @@ CREATE TABLE IF NOT EXISTS songplays (
     location varchar,
     user_agent varchar,
     PRIMARY KEY (songplay_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (song_id) REFERENCES songs(song_id),
-    FOREIGN KEY (artist_id) REFERENCES artists(artist_id)
 ) 
 DISTKEY (song_id)
 SORTKEY(start_time, session_id);
@@ -81,17 +78,18 @@ CREATE TABLE IF NOT EXISTS users(
     first_name varchar,
     last_name varchar,
     gender varchar,
-    level varchar,
+    level varchar NOT NULL,
     PRIMARY KEY (user_id)
 ) 
 diststyle all;
+ALTER TABLE songplays ADD CONSTRAINT FK_1 FOREIGN KEY (user_id) REFERENCES users(user_id)
 """)
 
 song_table_create = ("""
 CREATE TABLE IF NOT EXISTS songs(
     song_id varchar NOT NULL,
     title varchar,
-    artist_id varchar,
+    artist_id varchar NOT NULL,
     year integer,
     duration double precision,
     PRIMARY KEY (song_id),
@@ -99,18 +97,20 @@ CREATE TABLE IF NOT EXISTS songs(
 ) 
 DISTKEY (song_id)
 SORTKEY (year);
+ALTER TABLE songplays ADD CONSTRAINT FK_1 FOREIGN KEY (song_id) REFERENCES songs(song_id)
 """)
 
 artist_table_create = ("""
 CREATE TABLE IF NOT EXISTS artists(
     artist_id varchar NOT NULL,
-    name varchar,
+    name varchar NOT NULL,
     location varchar,
     latitude double precision,
     longitude double precision,
     PRIMARY KEY (artist_id)
 ) 
 diststyle all;
+ALTER TABLE songplays ADD CONSTRAINT FK_1 FOREIGN KEY (artist_id) REFERENCES artists(artist)id
 """)
 
 time_table_create = ("""
@@ -121,7 +121,8 @@ CREATE TABLE IF NOT EXISTS time(
     week integer,
     month integer,
     year integer,
-    weekday integer
+    weekday integer,
+    PRIMARY KEY (start_time)
 )
 """)
 
@@ -204,9 +205,8 @@ INSERT INTO users (
     gender,
     level
 ) 
-SELECT user_id, firstName, lastName, gender, level
+SELECT DISTINCT user_id, firstName, lastName, gender, level
 FROM staging_events
-GROUP BY user_id, firstName, lastName, gender, level
 """)
 
 song_table_insert = ("""
@@ -217,9 +217,8 @@ INSERT INTO songs (
     year,
     duration
 ) 
-SELECT song_id, title, artist_id, year, duration 
+SELECT DISTINCT song_id, title, artist_id, year, duration 
 FROM staging_songs
-GROUP BY song_id, title, artist_id, year, duration
 """)
 
 artist_table_insert = ("""
@@ -230,9 +229,8 @@ INSERT INTO artists (
     latitude, 
     longitude
 )
-SELECT artist_id, artist_name, artist_location, artist_latitude, artist_longitude
+SELECT DISTINCT artist_id, artist_name, artist_location, artist_latitude, artist_longitude
 FROM staging_songs
-GROUP BY artist_id, artist_name, artist_location, artist_latitude, artist_longitude
 """)
 
 time_table_insert = ("""
@@ -244,19 +242,26 @@ insert into time (
     year,
     weekday
 )
-select start_time,
-	   extract(hour from timestamp 'epoch' + start_time * interval '0.001 seconds') as hour,
-       extract(day from timestamp 'epoch' + start_time * interval '0.001 seconds') as day,
-       extract(week from timestamp 'epoch' + start_time * interval '0.001 seconds') as week,
-       extract(year from timestamp 'epoch' + start_time * interval '0.001 seconds') as year,
-       extract(weekday from timestamp 'epoch' + start_time * interval '0.001 seconds') as weekday
+SELECT DISTINCT start_time,
+                extract(hour from timestamp 'epoch' + start_time * interval '0.001 seconds') as hour,
+                extract(day from timestamp 'epoch' + start_time * interval '0.001 seconds') as day,
+                extract(week from timestamp 'epoch' + start_time * interval '0.001 seconds') as week,
+                extract(year from timestamp 'epoch' + start_time * interval '0.001 seconds') as year,
+                extract(weekday from timestamp 'epoch' + start_time * interval '0.001 seconds') as weekday
 from songplays 
-group by songplay_id, start_time
 """)
 
 # QUERY LISTS
 
-create_table_queries = [staging_events_table_create, staging_songs_table_create, user_table_create, artist_table_create, song_table_create, songplay_table_create, time_table_create]
+create_table_queries = [
+    staging_events_table_create, 
+    staging_songs_table_create, 
+    user_table_create, 
+    artist_table_create, 
+    song_table_create, 
+    songplay_table_create, 
+    time_table_create
+]
 drop_table_queries = [staging_events_table_drop, staging_songs_table_drop, songplay_table_drop, user_table_drop, song_table_drop, artist_table_drop, time_table_drop]
 copy_table_queries = [staging_events_copy, staging_songs_copy]
 insert_table_queries=[
