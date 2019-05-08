@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS staging_songs(
 songplay_table_create = ("""
 CREATE TABLE IF NOT EXISTS songplays (
     songplay_id integer NOT NULL IDENTITY(0,1),
-    start_time bigint,
-    user_id varchar,
+    start_time timestamp NOT NULL,
+    user_id varchar NOT NULL,
     level varchar,
     song_id varchar,
     artist_id varchar,
@@ -183,7 +183,7 @@ insert into songplays(
     location,
     user_agent
 )
-select ts as start_time, 
+select timestamp 'epoch' + ts * interval '0.001 seconds' as start_time, 
        user_id, 
        level, 
        songs.song_id as song_id, 

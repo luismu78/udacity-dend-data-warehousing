@@ -75,8 +75,8 @@ With the above considerations, the following schema was selected for the fact, a
 **songplays** - key distribution
 
 * songplay_id integer NOT NULL PRIMARY KEY
-* start_time integer SORT KEY
-* user_id varchar FOREIGN KEY REFERENCES users(user_id)
+* start_time timestamp NOT NULL SORT KEY
+* user_id varchar NOT NULL FOREIGN KEY REFERENCES users(user_id)
 * level varchar
 * song_id varchar DISTKEY FOREIGN KEY REFERENCES songs(song_id)
 * artist_id varchar FOREIGN KEY REFERENCES artists(artist_id)
@@ -84,7 +84,7 @@ With the above considerations, the following schema was selected for the fact, a
 * location varchar 
 * user_agent varchar
 
-Key distribution has been chosen for the songplays table, with a distribution key of song_id. This is because joins will be primarily made between the songplays, and the song  metadata itself. As well as this, the song table is most likely to grow in size. This selection will also allow the data to be distributed evenly over the nodes, avoiding skew. The user id is chosen as a varchar, since this is how the data is represented in the log data.
+Key distribution has been chosen for the songplays table, with a distribution key of song_id. This is because joins will be primarily made between the songplays, and the song  metadata itself. As well as this, the song table is most likely to grow in size. This selection will also allow the data to be distributed evenly over the nodes, avoiding skew. The user id is chosen as a varchar, since this is how the data is represented in the log data. For each songplay, the start time, and user id must be not null, and hence these restrictions have been reflected in the schema.
 
 We have created foreign keys with the user_id, song_id, and artist_id, as this information will be used for joins. 
 
